@@ -74,6 +74,9 @@ class People(object):  # No subclassing is strictly necessary.
 	
 	_members = ['alice', 'bob', 'eve']  # We mock this, but it'd probably come from your database.
 	
+	def __init__(self, context, collection=None, record=None):
+		self._ctx = context
+	
 	def get(self):
 		return "List of people: " + ", ".join(self._members)
 	
@@ -103,7 +106,7 @@ class People(object):  # No subclassing is strictly necessary.
 		return identifier
 
 
-app = Application(People)
+app = Application(People, logging=dict(level='debug'))
 
 
 if __name__ == '__main__':
