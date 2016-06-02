@@ -80,11 +80,12 @@ class ResourceDispatch(object):
 			try:
 				obj = Resource(context, obj, obj[path[0]])
 			except KeyError:
-				return
+				pass
 			else:
 				yield path.popleft(), obj, False
+			
+			return
 		
-		print(obj, verb, safe)
 		if verb and verb in safe:
 			obj = getattr(obj, verb, None)
 			if not obj and verb in {'head', 'options'}:
