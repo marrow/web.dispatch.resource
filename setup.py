@@ -30,7 +30,7 @@ tests_require = [
 		'pytest-flakes',  # syntax validation
 		'pytest-capturelog',  # log capture
 		'pytest-spec',  # output formatting
-		'WebOb',  # request mocking
+		'WebCore',  # request mocking
 	]
 
 
