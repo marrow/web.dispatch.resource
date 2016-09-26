@@ -18,17 +18,11 @@ log = __import__('logging').getLogger(__name__)
 class ResourceDispatch(object):
 	__slots__ = ()
 	
-	def __init__(self):
-		if __debug__:
-			log.debug("Resource dispatch ready.", extra=dict(dispatcher=repr(self)))
-		
-		super(ResourceDispatch, self).__init__()
-	
 	def __repr__(self):
 		return "ResourceDispatch(0x{id})".format(id=id(self), self=self)
 	
 	def __call__(self, context, obj, path):
-		verb = getattr(context, 'environ', context)['REQUEST_METHOD'].lower() if context else None
+		verb = getattr(context, 'environ', context)['REQUEST_METHOD'].lower() if context else 'get'
 		
 		if __debug__:
 			if not isinstance(path, deque):
@@ -105,5 +99,5 @@ class ResourceDispatch(object):
 	
 	def options(self, obj, *args, **kw):
 		"""The allowed methods are present in the returned headers."""
-		return ''
+		return None
 

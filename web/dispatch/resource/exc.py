@@ -2,7 +2,7 @@
 
 try:
 	from webob.exc import HTTPMethodNotAllowed
-except ImportError:
+except ImportError:  # pragma: no cover
 	HTTPMethodNotAllowed = RuntimeError
 
 
