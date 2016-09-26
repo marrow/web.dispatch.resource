@@ -2,6 +2,8 @@
 
 from web.dispatch.resource.helper import Resource
 
+from helper import Rig
+
 
 class TestResource(object):
 	def test_dispatcher(self):
@@ -17,4 +19,36 @@ class TestResource(object):
 		res = Resource(1)
 		assert res._ctx is 1
 		assert res._collection is res._record is None
+
+
+class TestResourceRuntime(Rig):
+	class root(Resource):
+		def get(self):
+			return "get"
+		
+		def post(self):
+			return "post"
+		
+		def put(self):
+			return "put"
+		
+		def delete(self):
+			return "delete"
+		
+		def custom(self):
+			return "custom"
+	
+	def test_basic_verbs(self):
+		assert self.do('get').text == "get"
+		assert self.do('post').text == "post"
+		assert self.do('put').text == "put"
+		assert self.do('delete').text == "delete"
+		assert self.do('custom').text == "custom"
+	
+	def test_head(self):
+		assert self.do('head').text == ""
+	
+	def test_allow(self):
+		verbs = set(self.do('get').headers['Allow'].split(', '))
+		assert {'GET', 'POST', 'PUT', 'DELETE', 'CUSTOM', 'HEAD', 'OPTIONS'}.issubset(verbs)
 
