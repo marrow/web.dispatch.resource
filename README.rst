@@ -21,7 +21,7 @@ Dispatch is the process of taking some starting point and a path, then resolving
 process is common to almost every web application framework (transforming URLs into controllers), RPC system, and even
 filesystem shell. Other terms for this process include: "traversal", "routing", or "lookup".
 
-Resource dispatch utilizes the HTTP verb (provided as the `HTTP_METHOD` WSGI environment variable) to determine which
+Resource dispatch utilizes the HTTP verb (provided as the ``HTTP_METHOD`` WSGI environment variable) to determine which
 method to call.
 
 This package speaks a standardized `dispatch protocol <https://github.com/marrow/WebCore/wiki/Dispatch-Protocol>`__
@@ -148,6 +148,14 @@ We can now update our initial example resource to behave as part of a collection
 
 The text result of a ``GET`` request to ``/`` will be ``10 potatoes in the field.``  You can probably infer the
 remaining behaviour.
+
+
+Further Descent
+~~~~~~~~~~~~~~~
+
+Custom verbs may be defined as additional methods. Any method whose name is not prefixed with an underscore is treated
+as an HTTP verb. Lastly, if there are remaining path elements, and the next matches an attribute whose value is a
+class, then that class will be instantiated and yielded as the next step of dispatch.
 
 
 Framework Authors
