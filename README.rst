@@ -44,9 +44,9 @@ robust as `Vagrant <http://www.vagrantup.com>`__.
 If you add ``web.dispatch.resource`` to the ``install_requires`` argument of the call to ``setup()`` in your
 application's ``setup.py`` file, this dispatcher will be automatically installed and made available when your own
 application or library is installed.  We recommend using "less than" version numbers to ensure there are no
-unintentional side-effects when updating.  Use ``web.dispatch.resource<2.1`` to get all bugfixes for the current release,
-and ``web.dispatch.resource<3.0`` to get bugfixes and feature updates while ensuring that large breaking changes are not
-installed.
+unintentional side-effects when updating.  Use ``web.dispatch.resource<2.1`` to get all bugfixes for the current
+release, and ``web.dispatch.resource<3.0`` to get bugfixes and feature updates while ensuring that large breaking
+changes are not installed.
 
 
 Development Version
@@ -63,11 +63,13 @@ system.  If you have Git you can run the following to download and *link* the de
 runtime::
 
     git clone https://github.com/marrow/web.dispatch.resource.git
-    (cd web.dispatch.resource; python setup.py develop)
+    pip install -e web.dispatch.resource
 
 You can then upgrade to the latest version at any time::
 
-    (cd web.dispatch.resourec; git pull; python setup.py develop)
+    cd web.dispatch.resourec
+    git pull
+    pip install -U -e .
 
 If you would like to make changes and contribute them back to the project, fork the GitHub project, make your changes,
 and submit a pull request.  This process is beyond the scope of this documentation; for more information see
@@ -80,6 +82,72 @@ Usage
 This section is split to cover framework authors who will need to integrate the overall protocol into their systems,
 and the object interactions this form of dispatch provides for end users.
 
+
+Dispatchable Objects
+--------------------
+
+This form of dispatch relies on having an object whose attributes, named after HTTP verbs, are callable. Typically
+classes with methods are used for this purpose. A basic example, using the ``web.dispatch.resource:Resource`` helper
+class, would be::
+
+    class Potato(Resource):
+        def get(self):
+            return "This is a marvellous potato."
+
+
+This represents a resource (thus the name) with two different endpoints based on the HTTP verb in the request. Fairly
+basic so far. To define a collection of resources, however, things get a little more complex::
+
+    class Field(Collection):
+        __resource__ = Potato
+        
+        potatoes = 10
+        
+        def get(self):
+            return str(self.potatoes) + " potatoes in the field."
+        
+        def post(self):
+            Field.potatoes += 1
+            return "There are now " + str(Field.potatoes) + " potatoes in the field."
+        
+        def delete(self):
+            Field.potatoes = 0
+            return "You monster."
+        
+        def __getitem__(self, index):
+            try:
+                index = int(index)
+            except ValueError:
+                raise KeyError()
+            
+            if index <= 0 or index > self.potatoes:
+                raise KeyError()
+            
+            return index
+
+This defines a resource (since colections are also resources) with a few standard operations on it, plus this strange
+double underscore method. This is a standard Python feature that lets you define that instances of your class can be
+accessed using mapping subscripts, like a dictionary. This is how resource dispatch looks up individual items out of
+collections.
+
+If a KeyError is raised in ``__getitem__``, then that identifier is assumed to not exist. We can now update our
+initial example resource to behave as part of a collection::
+
+    class Potato(Resource):
+        def get(self):
+            return "One of " + str(self._collection.potatoes) + " beautiful potatoes."
+        
+        def delete(self):
+            self._collection.potatoes -= 1
+            return "You monster."
+
+
+
+
+
+
+Framework Authors
+-----------------
 
 
 Version History
