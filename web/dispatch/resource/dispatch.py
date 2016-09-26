@@ -25,7 +25,7 @@ class ResourceDispatch(object):
 		return "ResourceDispatch(0x{id})".format(id=id(self), self=self)
 	
 	def __call__(self, context, obj, path):
-		verb = getattr(context, 'environ', context)['REQUEST_METHOD'].lower() if context else 'get'
+		verb = getattr(context, 'environ', context)['REQUEST_METHOD'].lower()
 		
 		if __debug__:
 			if not isinstance(path, deque):  # pragma: no cover
@@ -52,10 +52,14 @@ class ResourceDispatch(object):
 			obj = obj(context, None, None)
 			yield None, obj, False  # Announce class instantiation.
 		
+		context.resource = obj
 		consumed = None
 		Resource = getattr(obj, '__resource__', None)
 		safe = {i for i in dir(obj) if i[0] != '_'} | {'options'}
 		if 'get' in safe: safe.add('head')
+		
+		if 'collection' not in context:
+			context.collection = None
 		
 		if 'response' in context:
 			context.response.allow = {i.upper() for i in safe if ismethod(getattr(obj, i, None)) or i in {'head', 'options'}}
@@ -74,6 +78,8 @@ class ResourceDispatch(object):
 			return
 		
 		if path and Resource:
+			context.collection = obj
+			
 			try:
 				obj = Resource(context, obj, obj[path[0]])
 			except KeyError:
