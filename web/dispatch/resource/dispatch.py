@@ -28,7 +28,7 @@ class ResourceDispatch(object):
 		verb = getattr(context, 'environ', context)['REQUEST_METHOD'].lower() if context else 'get'
 		
 		if __debug__:
-			if not isinstance(path, deque):
+			if not isinstance(path, deque):  # pragma: no cover
 				warnings.warn(
 						"Your code is not providing the path as a deque; this will be cast in development but"
 						"will explode gloriously if run in a production environment.",
