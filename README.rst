@@ -67,7 +67,7 @@ runtime::
 
 You can then upgrade to the latest version at any time::
 
-    cd web.dispatch.resourec
+    cd web.dispatch.resource
     git pull
     pip install -U -e .
 
@@ -130,8 +130,13 @@ double underscore method. This is a standard Python feature that lets you define
 accessed using mapping subscripts, like a dictionary. This is how resource dispatch looks up individual items out of
 collections.
 
-If a KeyError is raised in ``__getitem__``, then that identifier is assumed to not exist. We can now update our
-initial example resource to behave as part of a collection::
+If a KeyError is raised in ``__getitem__``, then that identifier is assumed to not exist.
+
+The result of this lookup (using the next path element being dispatched against) is passed positionally to the
+constructor of the class pointed to by the ``__resource__`` attribute of the ``Collection`` subclass, as is a
+reference to the collection that spawned it.
+
+We can now update our initial example resource to behave as part of a collection::
 
     class Potato(Resource):
         def get(self):
@@ -141,13 +146,71 @@ initial example resource to behave as part of a collection::
             self._collection.potatoes -= 1
             return "You monster."
 
-
-
-
+The text result of a ``GET`` request to ``/`` will be ``10 potatoes in the field.``  You can probably infer the
+remaining behaviour.
 
 
 Framework Authors
 -----------------
+
+To get started using resource dispatch to route requests in your web application, you're going to need to instantiate
+the dispatcher::
+
+    from web.dispatch.resource import ResourceDispatch
+    
+    dispatch = ResourceDispatch()  # There is currently no configuration.
+
+Once you have that, you'll need a WSGI environment in some form of attribute access object used as the context. Our
+examples here will use WebOb to provide a mock environment for us::
+
+    from webob import Request, Response
+    req = Request.objects.blank('/', method="delete")
+    context = Context(environ=req.environ, request=req, response=Response())
+
+Now that we have a prepared dispatcher, and prepared context, we'll need to prepare the path according to the
+protocol::
+
+    path = req.path_info.split('/')  # Initial path from the request's PATH_INFO.
+    path = path[1:]  # Skip singular leading slashes; see the API specification.
+    path = deque(path)  # Provide the path as a deque instance, allowing popleft.
+
+The above doesn't need to be split apart exaclty like that, but you get the idea of the processing steps that need to
+be completed prior to calling the dispatcher. The above might happen only once for the entire duration of a request
+within a web framework, for example.
+
+We can now call the dispatcher and iterate dispatch events::
+
+    for segment, handler, endpoint, *meta in dispatch(context, some_object, path):
+        print(segment, handler, endpoint)  # Do something with this information.
+
+When a context is provided, it is passed as the first argument to any instantiated classes. After completing iteration,
+check the final ``endpoint``.  If it is ``True`` then the path was successfully mapped to the object referenced by the
+``handler`` variable, otherwise it represents the deepest object that was able to be found.
+
+You can always just skip straight to the answer if you so chooose::
+
+    segment, handler, endpoint, *meta = list(dispatch(context, some_object, path))[-1]
+
+However, providing some mechanism for callbacks or notifications of dispatch is often far more generally useful
+
+**Note:** It is entirely permissable or dispatchers to return ``None`` as a processed path segment. Resource dispatch
+will, under most circumstances not involving attributes who are classes, will use ``None`` in this way.
+
+Python 2 & 3 Compatibility
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The dispatch protocol is designed to be extendable in the future by using ``namedtuple`` subclasses, however this has
+an impact on usage as you may have noticed the ``*meta`` in there. This syntax, introduced in Python 3, will gather any
+extraneous tuple elements into a separate list. If you actually care about the metadata, do not unpack the tuple this
+way. Instead::
+
+    for meta in dispatch(None, some_object, path):
+        segment, handler, endpoint = step[:3]  # Unpack, but preserve.
+        print(segment, handler, endpoint, meta)  # Do something with this information.
+
+This document is written from the perspective of modern Python 3, and throwing away the metadata within the ``for``
+statement itself provides more compact examples. The above method of unpacking the first three values is the truly
+portable way to do this across versions.
 
 
 Version History
@@ -156,12 +219,13 @@ Version History
 Version 2.0
 -----------
 
-* Extract of the object dispatch mechanism from WebCore.
+* Extract of the resource dispatch mechanism from WebCore.
+* Updated to utilize the standardized dispatch protocol.
 
 Version 1.x
 -----------
 
-* Process fully integrated in the WebCore web framework.
+* Process fully integrated in the WebCore web framework as the "RESTful dialect".
 
 
 License
@@ -228,12 +292,12 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
     :target: https://github.com/marrow/web.dispatch.resource/issues
     :alt: Github Issues
 
-.. |ghsince| image:: https://img.shields.io/github/commits-since/marrow/web.dispatch.resource/2.1.0.svg
+.. |ghsince| image:: https://img.shields.io/github/commits-since/marrow/web.dispatch.resource/2.0.0.svg
     :target: https://github.com/marrow/web.dispatch.resource/commits/develop
     :alt: Changes since last release.
 
 .. |ghtag| image:: https://img.shields.io/github/tag/marrow/web.dispatch.resource.svg
-    :target: https://github.com/marrow/web.dispatch.resource/tree/2.1.0
+    :target: https://github.com/marrow/web.dispatch.resource/tree/2.0.0
     :alt: Latest Github tagged release.
 
 .. |latestversion| image:: http://img.shields.io/pypi/v/web.dispatch.resource.svg?style=flat
