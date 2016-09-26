@@ -87,7 +87,7 @@ class ResourceDispatch(object):
 			yield None, obj, True
 			return
 		
-		raise InvalidMethod()
+		raise LookupError()
 	
 	def head(self, obj, *args, **kw):
 		"""Allow the get method to set headers, but return no content.
