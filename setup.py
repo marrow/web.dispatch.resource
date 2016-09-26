@@ -13,8 +13,6 @@ try:
 except ImportError:
 	from setuptools import setup, find_packages
 
-from setuptools.command.test import test as TestCommand
-
 
 if sys.version_info < (2, 7):
 	raise SystemExit("Python 2.7 or later is required.")
@@ -24,42 +22,27 @@ elif sys.version_info > (3, 0) and sys.version_info < (3, 2):
 version = description = url = author = None
 exec(open(os.path.join("web", "dispatch", "resource", "release.py")).read())
 
-
-class PyTest(TestCommand):
-	def finalize_options(self):
-		TestCommand.finalize_options(self)
-		
-		self.test_args = []
-		self.test_suite = True
-	
-	def run_tests(self):
-		import pytest
-		sys.exit(pytest.main(self.test_args))
-
-
 here = os.path.abspath(os.path.dirname(__file__))
 
 tests_require = [
 		'pytest',  # test collector and extensible runner
 		'pytest-cov',  # coverage reporting
 		'pytest-flakes',  # syntax validation
+		'pytest-capturelog',  # log capture
 		'pytest-spec',  # output formatting
-		'WebOb',  # request mocking
+		'WebCore',  # request mocking
 	]
 
 
 setup(
 	name = "web.dispatch.resource",
 	version = version,
-	
 	description = description,
 	long_description = codecs.open(os.path.join(here, 'README.rst'), 'r', 'utf8').read(),
 	url = url,
 	download_url = 'http://s.webcore.io/aIly',
-	
 	author = author.name,
 	author_email = author.email,
-	
 	license = 'MIT',
 	keywords = ['web.dispatch', 'WebCore', 'REST'],
 	classifiers = [
@@ -76,9 +59,9 @@ setup(
 			"Programming Language :: Python :: 3.2",
 			"Programming Language :: Python :: 3.3",
 			"Programming Language :: Python :: 3.4",
+			"Programming Language :: Python :: 3.5",
 			"Programming Language :: Python :: Implementation :: CPython",
 			"Programming Language :: Python :: Implementation :: PyPy",
-			"Topic :: Internet :: WWW/HTTP :: WSGI",
 			"Topic :: Software Development :: Libraries :: Python Modules",
 		],
 	
@@ -95,6 +78,9 @@ setup(
 				],
 		},
 	
+	setup_requires = [
+			'pytest-runner',
+		] if {'pytest', 'test', 'ptr'}.intersection(sys.argv) else [],
 	install_requires = [
 		],
 	
@@ -105,7 +91,4 @@ setup(
 	tests_require = tests_require,
 	
 	zip_safe = True,
-	cmdclass = dict(
-			test = PyTest,
-		)
 )
