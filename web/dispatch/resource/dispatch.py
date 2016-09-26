@@ -63,8 +63,8 @@ class ResourceDispatch(object):
 		if path and path[0] in safe:
 			consumed = attr = path.popleft()
 			attr = getattr(obj, attr, None)
-			if not attr and attr in {'head', 'options'}:
-				attr = partial(getattr(self, attr), obj)
+			if not attr and consumed in {'head', 'options'}:
+				attr = partial(getattr(self, consumed), obj)
 			
 			if isclass(attr):
 				yield consumed, attr(context, obj, None), False

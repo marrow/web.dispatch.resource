@@ -37,6 +37,15 @@ class TestResourceRuntime(Rig):
 		
 		def custom(self):
 			return "custom"
+		
+		class other(object):
+			def __init__(self, context=None, container=None, record=None):
+				self._ctx = context
+				self._con = container
+				self._rec = record
+			
+			def __call__(self):
+				return "got"
 	
 	def test_basic_verbs(self):
 		assert self.do('get').text == "get"
@@ -45,6 +54,13 @@ class TestResourceRuntime(Rig):
 		assert self.do('delete').text == "delete"
 		assert self.do('custom').text == "custom"
 	
+	def test_verb_replacement(self):
+		assert self.do('get', '/delete').text == "delete"
+		assert self.do('get', '/head').text == ""
+	
+	def test_other_descent(self):
+		assert self.do('get', '/other').text == "got"
+	
 	def test_invalid(self):
 		assert self.do('invalid').status_int == 405
 	
@@ -52,6 +68,10 @@ class TestResourceRuntime(Rig):
 		assert self.do('head').text == ""
 	
 	def test_allow(self):
+		verbs = set(self.do('get').headers['Allow'].split(', '))
+		assert {'GET', 'POST', 'PUT', 'DELETE', 'CUSTOM', 'HEAD', 'OPTIONS'}.issubset(verbs)
+	
+	def test_options(self):
 		verbs = set(self.do('get').headers['Allow'].split(', '))
 		assert {'GET', 'POST', 'PUT', 'DELETE', 'CUSTOM', 'HEAD', 'OPTIONS'}.issubset(verbs)
 
