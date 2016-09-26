@@ -38,14 +38,12 @@ class TestResourceRuntime(Rig):
 		def custom(self):
 			return "custom"
 		
-		class other(object):
-			def __init__(self, context=None, container=None, record=None):
-				self._ctx = context
-				self._con = container
-				self._rec = record
-			
-			def __call__(self):
+		class other(Resource):
+			def get(self):
 				return "got"
+			
+			def post(self):
+				return "did"
 	
 	def test_basic_verbs(self):
 		assert self.do('get').text == "get"
@@ -60,6 +58,7 @@ class TestResourceRuntime(Rig):
 	
 	def test_other_descent(self):
 		assert self.do('get', '/other').text == "got"
+		assert self.do('post', '/other').text == "did"
 	
 	def test_invalid(self):
 		assert self.do('invalid').status_int == 405
