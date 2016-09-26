@@ -46,7 +46,7 @@ class TestResourceRuntime(Rig):
 		assert self.do('custom').text == "custom"
 	
 	def test_invalid(self):
-		assert self.do('invalid').status_int == 404
+		assert self.do('invalid').status_int == 405
 	
 	def test_head(self):
 		assert self.do('head').text == ""

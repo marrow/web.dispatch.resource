@@ -14,6 +14,9 @@ from .exc import InvalidMethod
 log = __import__('logging').getLogger(__name__)
 
 
+def invalid_method(*args, **kw):
+	raise InvalidMethod()
+
 
 class ResourceDispatch(object):
 	__slots__ = ()
@@ -87,7 +90,7 @@ class ResourceDispatch(object):
 			yield None, obj, True
 			return
 		
-		raise LookupError()
+		yield None, invalid_method, True
 	
 	def head(self, obj, *args, **kw):
 		"""Allow the get method to set headers, but return no content.
