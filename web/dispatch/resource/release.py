@@ -13,3 +13,4 @@ author = namedtuple('Author', ['name', 'email'])("Alice Bevan-McGregor", 'alice@
 description = "Resource dispatch; a method to resolve a request to an endopint using the WSGI HTTP_METHOD and attribute access."
 copyright = "2009-2016, Alice Bevan-McGregor and contributors"
 url = 'https://github.com/marrow/web.dispatch.resource'
+
