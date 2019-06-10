@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 import warnings
 
 if __debug__:
@@ -18,7 +16,7 @@ def invalid_method(*args, **kw):
 	raise InvalidMethod()
 
 
-class ResourceDispatch(object):
+class ResourceDispatch:
 	__slots__ = ()
 	
 	def __repr__(self):
@@ -109,4 +107,3 @@ class ResourceDispatch(object):
 	def options(self, obj, *args, **kw):
 		"""The allowed methods are present in the returned headers."""
 		return None
-

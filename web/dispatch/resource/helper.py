@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 """Helpers for advanced controller behaviour.
 
 Much work needs to be done.
@@ -8,7 +6,7 @@ Much work needs to be done.
 from functools import partial, wraps
 
 
-class Resource(object):
+class Resource:
 	__dispatch__ = 'resource'
 	
 	def __init__(self, context, collection=None, record=None):
@@ -22,4 +20,3 @@ class Collection(Resource):
 	
 	def __getitem__(self, identifier):
 		raise NotImplementedError()
-
