@@ -7,6 +7,7 @@ from functools import partial
 from inspect import isclass, ismethod
 
 from .exc import InvalidMethod
+from ..core import Crumb
 
 
 log = __import__('logging').getLogger(__name__)
@@ -24,6 +25,7 @@ class ResourceDispatch:
 	
 	def __call__(self, context, obj, path):
 		verb = getattr(context, 'environ', context)['REQUEST_METHOD'].lower()
+		origin = obj
 		
 		if __debug__:
 			if not isinstance(path, deque):  # pragma: no cover
@@ -38,7 +40,7 @@ class ResourceDispatch:
 				else:
 					path = deque(path)
 			
-			log.debug("Preparing resource dispatch. " + repr(obj), extra=dict(
+			log.debug("Preparing resource dispatch.", extra=dict(
 					dispatcher = repr(self),
 					context = repr(context),
 					obj = repr(obj),
@@ -47,8 +49,12 @@ class ResourceDispatch:
 				))
 		
 		if isclass(obj):
-			obj = obj(context, None, None)
-			yield None, obj, False  # Announce class instantiation.
+			obj = obj() if context is None else obj(context)
+			
+			if __debug__:
+				log.debug("Instantiated class during descent.", extra=dict(LE, obj=obj))
+			
+			yield Crumb(self, origin, handler=obj)  # Announce class instantiation.
 		
 		context.resource = obj
 		consumed = None
@@ -69,10 +75,10 @@ class ResourceDispatch:
 				attr = partial(getattr(self, consumed), obj)
 			
 			if isclass(attr):
-				yield consumed, attr(context, obj, None), False
+				yield Crumb(self, origin, path=consumed, handler=obj)
 				return
 			
-			yield consumed, attr, True
+			yield Crumb(self, origin, path=consumed, endpoint=True, handler=obj)
 			return
 		
 		if path and Resource:
@@ -83,7 +89,7 @@ class ResourceDispatch:
 			except KeyError:
 				pass
 			else:
-				yield path.popleft(), obj, False
+				yield Crumb(self, origin, path=path.popleft(), handler=obj)
 			
 			return
 		
@@ -91,10 +97,10 @@ class ResourceDispatch:
 			obj = getattr(obj, verb, None)
 			if not obj and verb in {'head', 'options'}:
 				obj = partial(getattr(self, verb), obj)
-			yield None, obj, True
+			yield Crumb(self, origin, endpoint=True, handler=obj)
 			return
 		
-		yield None, invalid_method, True
+		yield Crumb(self, origin, endpoint=True, handler=invalid_method)
 	
 	def head(self, obj, *args, **kw):
 		"""Allow the get method to set headers, but return no content.
