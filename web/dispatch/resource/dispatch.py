@@ -52,7 +52,7 @@ class ResourceDispatch:
 			obj = obj() if context is None else obj(context)
 			
 			if __debug__:
-				log.debug("Instantiated class during descent.", extra=dict(LE, obj=obj))
+				log.debug("Instantiated class during descent.", extra=dict(obj=obj))
 			
 			yield Crumb(self, origin, handler=obj)  # Announce class instantiation.
 		
@@ -75,10 +75,10 @@ class ResourceDispatch:
 				attr = partial(getattr(self, consumed), obj)
 			
 			if isclass(attr):
-				yield Crumb(self, origin, path=consumed, handler=obj)
+				yield Crumb(self, origin, path=consumed, handler=attr)
 				return
 			
-			yield Crumb(self, origin, path=consumed, endpoint=True, handler=obj)
+			yield Crumb(self, origin, path=consumed, endpoint=True, handler=attr)
 			return
 		
 		if path and Resource:
