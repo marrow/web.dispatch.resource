@@ -49,7 +49,7 @@ class ResourceDispatch:
 				))
 		
 		if isclass(obj):
-			obj = obj() if context is None else obj(context)
+			obj = obj(context, collection=context.path[-2].handler, record=getattr(context.path[-2].handler, '_record', None))
 			
 			if __debug__:
 				log.debug("Instantiated class during descent.", extra=dict(obj=obj))
